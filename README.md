@@ -37,4 +37,4 @@ Training was performed using LightGBM with LambdaRank. Features were generated u
 
 - Run the notebooks under the "precompute" directory. Save the computed results at whereever you want. We have been using /home/data for this purpose.
 - Run the feature engineering notebook. Ensure the loading directory is set correctly.
-- Run the training and inference notebook.# recsys-2024-tom3tk
+- Run the training and inference notebook.
