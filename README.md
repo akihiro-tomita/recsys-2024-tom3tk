@@ -14,7 +14,7 @@ The feature generation was created from the following four perspectives:
 
 For each feature, we enhanced accuracy by calculating not only the absolute level of the feature but also its rank within impressions to provide relative information to the model.
 
-Training was performed using LightGBM with LambdaRank. Features were generated using all the data, and 20% of it was randomly selected as the training dataset. We created eight models using this method and combined them in an ensemble.
+Training was performed using LightGBM with LambdaRank. Features were generated using all the data, and uses 20 chunks out of 200 chunks were randomly selected as the training + valid dataset. We created eight models using this method and combined them in an ensemble.
 
 
 ## Directory Structure
@@ -30,7 +30,16 @@ Training was performed using LightGBM with LambdaRank. Features were generated u
     - Computes the count of each article appearing in-view over time.
 
 - 1.feature engineering
+  - feature-engineering.ipynb
+    - Calculates features from train/valid/test behaviors and history.
 - 2.train/inference
+  - a. train.ipynb
+    - Trains models from train + valid features using LightGBM with LambdaRank.
+    - 8 models were created from different randomly selected chunks, random_states, and epochs.
+  - b. inference.ipynb
+    - Predicts scores for the test dataset.
+  - c. create_submission_file.ipynb
+    - Creates the submission file for Codabench.
 
 
 ## How to Reproduce
