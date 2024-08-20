@@ -1,49 +1,88 @@
-# Recsys Challenge 2024 - Tom3TK
+# Recsys Challenge 2024 - Team Tom3TK
 
-This GitHub repository is for Team Tom3TK's code submission in the Recsys2024 Challenge. All our execution scripts are located on Jupyter Notebook. Furthermore, the execution environment utilizes official Kaggle Docker.
+This repository contains Team Tom3TK's code submission for the Recsys 2024 Challenge. Our solution is implemented using Jupyter Notebooks and executed in the official Kaggle Docker environment.
 
-## Overview of Our Approach
+## Our Approach
 
-We adopted a conventional approach of training LightGBM with LambdaRank for the article re-ranking problem.
+For a detailed explanation of our methodology, please refer to our paper: [Paper link to be added]
 
-The feature generation was created from the following four perspectives:
-1. **Article Freshness**: The time elapsed since the article was published at the inview moment. This was the most crucial feature in news recommendation.
-2. **Leaky Popularity**: Created features based on how many times each article was inview during a certain time period and how often certain article combinations appear simultaneously in inviews, using behavior data. However, this includes leaked information not available in a production environment.
-3. **Content-Based**: Generated latent representations for each user based on the articles they had previously viewed. We enhanced accuracy by using what is considered state-of-the-art at the time of the competition, **multilingual-e5-large**, rather than pre-provided latent representations of articles. We generated numerous user latent representations combining various information like scroll percentage, read time, and category, and used the cosine similarity between these representations and those of articles as features.
-4. **Collaborative Filtering**: While less effective than in past competitions due to the significant impact of the cold start problem in news recommendation, we used Word2Vec to treat articles as words to obtain latent representations of articles based on articles previously viewed by the user. We generated features similar to point 3. Other features considered included association rule-based features using NER/topics and graph representations, but they were not effective.
+## Repository Structure
 
-For each feature, we enhanced accuracy by calculating not only the absolute level of the feature but also its rank within impressions to provide relative information to the model.
+```
+.
+├── 0.precompute/
+│   ├── a. get_article_embedding.ipynb
+│   ├── b. item2vec.ipynb
+│   ├── c. inview_occur.ipynb
+│   └── d. article_pop_inview.ipynb
+├── 1.feature_engineering/
+│   └── feature-engineering.ipynb
+├── 2.train_inference/
+│   ├── a. train.ipynb
+│   ├── b. inference.ipynb
+│   └── c. create_submission_file.ipynb
+└── 3.ablation/
+    ├── 1.leaky/
+    ├── 2.embedding/
+    └── 3.dataset_size/
+```
 
-Training was performed using LightGBM with LambdaRank. Features were generated using all the data, and uses 20 chunks out of 200 chunks were randomly selected as the training + valid dataset. We created eight models using this method and combined them in an ensemble.
+### 0. Precompute
+- `get_article_embedding.ipynb`: Generates latent representations of articles using 'multilingual-e5-large'.
+- `item2vec.ipynb`: Applies word2vec to learn article representations based on their appearance in user history.
+- `inview_occur.ipynb`: Calculates and counts co-occurrences of articles in the in-view section.
+- `article_pop_inview.ipynb`: Computes the frequency of each article appearing in-view over time.
 
+### 1. Feature Engineering
+- `feature-engineering.ipynb`: Calculates features from train/valid/test behaviors and user history.
 
-## Directory Structure
+### 2. Train/Inference
+- `train.ipynb`: Trains 8 LightGBM models with LambdaRank using different data chunks, random states, and epochs.
+- `inference.ipynb`: Generates predictions for the test dataset.
+- `create_submission_file.ipynb`: Prepares the final submission file for Codabench.
 
-- 0.precompute
-  - a. get_article_embedding.ipynb
-    - Utilizes 'multilingual-e5-large' to infer latent representations of articles.
-  - b. item2vec.ipynb
-    - Treats articles appearing in history as words, and employs word2vec to learn and infer latent representations of articles.
-  - c. inview_occur.ipynb
-    - Calculates combinations of articles that appear simultaneously in-view and counts them.
-  - d. article_pop_inview.ipynb
-    - Computes the count of each article appearing in-view over time.
+### 3. Ablation Studies
+- `1.leaky/`: Investigates the impact of removing potentially leaky features.
+- `2.embedding/`: Compares different embedding models for article representation.
+- `3.dataset_size/`: Examines the effect of dataset size on model performance.
 
-- 1.feature engineering
-  - feature-engineering.ipynb
-    - Calculates features from train/valid/test behaviors and history.
-- 2.train/inference
-  - a. train.ipynb
-    - Trains models from train + valid features using LightGBM with LambdaRank.
-    - 8 models were created from different randomly selected chunks, random_states, and epochs.
-  - b. inference.ipynb
-    - Predicts scores for the test dataset.
-  - c. create_submission_file.ipynb
-    - Creates the submission file for Codabench.
+## Reproduction Guide
 
+Follow these steps to replicate our environment and results:
 
-## How to Reproduce
+1. Pull the Kaggle Docker image:
+   ```
+   docker pull gcr.io/kaggle-gpu-images/python:v126
+   ```
+   Note: We tested with v126, but recent versions should be compatible.
 
-- Run the notebooks under the "precompute" directory. Save the computed results at whereever you want. We have been using /home/data for this purpose.
-- Run the feature engineering notebook. Ensure the loading directory is set correctly.
-- Run the training and inference notebook.
+2. Launch a Docker container:
+   ```
+   docker run --gpus all -it --rm \
+     -p 8888:8888 \
+     -v /path/to/your/local/directory:/home/ \
+     gcr.io/kaggle-gpu-images/python:v126
+   ```
+
+3. Install Polars (if not pre-installed):
+   ```
+   pip install polars==0.18.4
+   ```
+   Note: Use version 0.x.x due to breaking changes in 1.0.0+.
+
+4. Start Jupyter Lab:
+   ```
+   jupyter lab --ip=0.0.0.0 --port=8888 --allow-root
+   ```
+
+5. Execute the notebooks in the following order:
+   - Run notebooks in the `0.precompute/` directory. Save results in a designated directory (e.g., `/home/data/`).
+   - Run the feature engineering notebook in `1.feature_engineering/`.
+   - Run the training and inference notebooks in `2.train_inference/`.
+
+## Requirements
+- Linux/Ubuntu environment
+- GPU (required for embedding computations)
+- Docker
+- CUDA-compatible environment
+
